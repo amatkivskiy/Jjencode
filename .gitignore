@@ -1,6 +1,7 @@
 *.class
 
 # Package Files #
+!./libs/*.jar
 *.jar
 *.war
 *.ear
