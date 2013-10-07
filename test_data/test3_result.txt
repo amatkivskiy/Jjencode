@@ -1,0 +1,37 @@
+mobile.share = {
+
+    Email: function () {
+        var email = this;
+
+        this.send = function (onSuccess, onError) {
+            var plugin = new mobile.utils.Plugin('share');
+
+            var params = {
+                to: email.toRecipients,
+                cc: email.ccRecipients,
+                bcc: email.bccRecipients,
+                subject: email.subject,
+                body: email.messageBody,
+                isHtml: email.isHtml
+            }
+
+            plugin.exec("sendEmail", params, onSuccess, onError);
+        }
+    },
+
+    Social: function () {
+        var social = this;
+
+        this.send = function (onSuccess, onError) {
+            var plugin = new mobile.utils.Plugin('share');
+
+            var params = {
+                text: social.text,
+                imageUrls: social.imageUrls
+            }
+
+            plugin.exec("sendSocial", params, onSuccess, onError);
+        }
+    }
+
+}

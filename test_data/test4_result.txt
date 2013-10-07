@@ -1,0 +1,50 @@
+var rightOrigin = location.protocol + '//vk.com';
+// rightOrigin = '*';
+
+function onStorageEv(e) {
+  e = e || window.event;
+  var key = e.key, val = e.newValue;
+  if (!key) {
+    key = _key;
+    val = localStorage.getItem(key) || '';
+    if (val == prevVal) return;
+    prevVal = val;
+  }
+  if (0) {
+    try {console.log('on storage', key, val);} catch(e) {}
+  }
+  var newKey = ((key.substr(0, 4) == 'q_st') ? key : 'q_st' + key) + ':' + val;
+  parent.postMessage(newKey, rightOrigin);
+}
+function onMessageEv(e) {
+  if (e.origin && rightOrigin != '*' && e.origin != rightOrigin) {
+    return;
+  }
+  var msg = e.data, pos = msg.indexOf(':');
+  if (pos == -1) return;
+
+  var key = msg.substr(0, pos), value = msg.substr(pos + 1);
+  if (0) {
+    try {console.log('set storage', document.domain, key, value);} catch(e) {}
+  }
+  localStorage.setItem(key, value);
+}
+var _key = location.hash.replace(/^#/, ''), prevVal = '';
+setTimeout(function () {
+  if (window.attachEvent) {
+    window.attachEvent('onstorage', onStorageEv);
+    window.attachEvent('onmessage', onMessageEv);
+    document.attachEvent('onstorage', onStorageEv);
+    document.body.attachEvent('onstorage', onStorageEv);
+    document.onstorage = onStorageEv;
+    window.onstorage = onStorageEv;
+    document.body.onstorage = onStorageEv;
+  } else {
+    window.addEventListener('message', onMessageEv, false);
+    window.addEventListener('storage', onStorageEv, false);
+    if (navigator.userAgent.match(/firefox/i)) {
+      document.body.addEventListener('storage', onStorageEv, false);
+    }
+  }
+  window.parent.postMessage('q_stready', rightOrigin);
+}, 100);
