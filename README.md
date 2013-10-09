@@ -1,4 +1,4 @@
 Jjencode
 ========
 
-Java tool for encoding and decoding javascript code (using Jjencode algorithm)
+Java tool for decoding javascript obfuscated code (using Jjencode algorithm)
