@@ -12,7 +12,6 @@ public class JJencoder {
     public final static String UNDEFINED = "undefined";
     public final static String OBJECT_OBJECT = "[object Object]";
     private static HashMap<String, String> tokens;
-
     private VariablesMap variables;
 
     public JJencoder() {
@@ -29,6 +28,41 @@ public class JJencoder {
         tokens.put("^((.+)\\.(.+))\\+\"\"", UNDEFINED); //
         tokens.put("^\\(!.+\\)\\+\"\"$", "false"); //
 
+    }
+
+    /**
+     * Converts string with variables to array of that variables.
+     * <p>For example :
+     * <p>"$$_.$$_+"-"+$$_.__+$$_._$+"\\"+$$_.__$+$$_.$_$"
+     * <p>converts to
+     * <p>[$$_.$$_, -, $$_.__+$$, $$_._$, \\, $$_.__$, $$_.$_$]
+     *
+     * @param rawValue {@code String} with variables.
+     * @return {@code String[]}  that contains variables.
+     */
+    private static String[] parseArguments(String rawValue) {
+        ArrayList<String> result = new ArrayList<String>();
+        int startIndex = 0;
+        int endIndex = 0;
+        while (endIndex < rawValue.length()) {
+            endIndex = rawValue.indexOf("+", endIndex);
+            if (endIndex == -1) {
+                result.add(rawValue.substring(startIndex, rawValue.length()));
+                break;
+            }
+            if (rawValue.charAt(endIndex + 1) == '"') {
+                if (rawValue.charAt(endIndex + 2) == '"' &&
+                        rawValue.charAt(endIndex + 3) != '"') {
+                    endIndex++;
+                    continue;
+                }
+            }
+            result.add(rawValue.substring(startIndex, endIndex));
+            startIndex = endIndex + 1;
+            endIndex++;
+        }
+        String[] array = new String[result.size()];
+        return result.toArray(array);
     }
 
     private String parseRawValue(String rawValue) {
@@ -153,30 +187,6 @@ public class JJencoder {
         }
     }
 
-    private static String[] parseArguments(String rawValue) {
-        ArrayList<String> result = new ArrayList<String>();
-        int startIndex = 0;
-        int endIndex = 0;
-        while (endIndex < rawValue.length()) {
-            endIndex = rawValue.indexOf("+", endIndex);
-            if (endIndex == -1) {
-                result.add(rawValue.substring(startIndex, rawValue.length()));
-                break;
-            }
-            if (rawValue.charAt(endIndex + 1) == '"') {
-                if (rawValue.charAt(endIndex + 2) == '"') {
-                    endIndex++;
-                    continue;
-                }
-            }
-            result.add(rawValue.substring(startIndex, endIndex));
-            startIndex = endIndex + 1;
-            endIndex++;
-        }
-        String[] array = new String[result.size()];
-        return result.toArray(array);
-    }
-
     public String decode(String input) {
         if (input == null) throw new IllegalArgumentException("input can't be null");
         String[] args = input.split(";");
@@ -243,7 +253,7 @@ public class JJencoder {
         StringBuilder builder = new StringBuilder();
 
         int i = 0;
-        while (!args[i].matches(".+=\\(.+\\)\\[.+\\]\\[.+\\]")) { // fix case when there is '=' in quotes
+        while (!args[i].matches(".+=\\(.+\\)\\[.+\\]\\[.+\\]")) {
             list.add(args[i]);
             i++;
         }
@@ -267,7 +277,6 @@ public class JJencoder {
     public void reset() {
         variables.clear();
     }
-
 
     class VariablesMap extends HashMap<String, String> {
         public VariablesMap() {
